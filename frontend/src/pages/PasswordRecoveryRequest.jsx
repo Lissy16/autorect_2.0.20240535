@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 
 function PasswordRecoveryRequest() {
   const navigate = useNavigate();
-  const API_RECOVERY = "http://localhost:3000/api/password-recovery"; // endpoint para iniciar el flujo de recuperación
+const API_RECOVERY = "http://localhost:4002/api/password-recovery";
 
   const [email, setEmail] = useState(""); // correo que solicita la recuperación
   const [isSubmitting, setIsSubmitting] = useState(false); // estado de envío del formulario

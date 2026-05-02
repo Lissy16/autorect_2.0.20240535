@@ -1,7 +1,9 @@
 import dotenv from "dotenv"; // librería para cargar variables de entorno desde un archivo .env
 
-//Ejecutamos la libreria dotenv
+// Ejecutamos la libreria dotenv
 dotenv.config();
+
+console.log("DB_URI desde .env:", process.env.DB_URI); // ← LÍNEA AGREGADA PARA DEPURAR
 
 export const config = { // exportamos un objeto de configuración con las variables de entorno necesarias para la aplicación
   db: {

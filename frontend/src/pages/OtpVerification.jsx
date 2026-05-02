@@ -1,65 +1,60 @@
-import { Link, useNavigate } from "react-router"; // Importación de hooks y componentes necesarios para la funcionalidad de verificación OTP y navegación
-import { useState } from "react"; // Importación de useState para manejar el estado local del formulario de verificación OTP
-import { toast } from "sonner"; // Importación de la biblioteca de notificaciones para mostrar mensajes de éxito o error al usuario
-import { Button, buttonVariants } from "@/components/ui/button"; // Importación de componentes de botón personalizados para la interfaz de usuario
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Importación de componentes de tarjeta personalizados para la interfaz de usuario
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"; // Importación de componentes personalizados para la entrada de código OTP
-import { Label } from "@/components/ui/label"; // Importación de componente de etiqueta personalizado para la interfaz de usuario
+import { Link, useNavigate } from "react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Label } from "@/components/ui/label";
 
-// Componente de verificación OTP que maneja la validación del código OTP ingresado por el usuario y la funcionalidad de reenvío del código OTP
 function OtpVerification() {
-  const navigate = useNavigate(); // Hook para manejar la navegación programática
-  const API_VERIFY = "http://localhost:3000/api/register/verifyCodeEmail"; // URL del endpoint para verificar el código OTP
-  const API_REGISTER = "http://localhost:3000/api/register"; // URL del endpoint para registrar un nuevo usuario (utilizado para reenviar el código OTP)
-  const [otpCode, setOtpCode] = useState(""); // Estado local para almacenar el código OTP ingresado por el usuario
-  const [isSubmitting, setIsSubmitting] = useState(false); // Estado local para manejar el estado de envío del formulario de verificación OTP
-  const [isResending, setIsResending] = useState(false); // Estado local para manejar el estado de reenvío del código OTP
+  const navigate = useNavigate();
+  const API_VERIFY = "http://localhost:4002/api/register/verifyCodeEmail";
+  const API_REGISTER = "http://localhost:4002/api/register";
+  const [otpCode, setOtpCode] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
-  // Función para manejar el envío del formulario de verificación OTP
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Previene el comportamiento predeterminado del formulario para evitar recargas de página
+    event.preventDefault();
 
-    if (otpCode.length !== 6) { // Validación básica para asegurarse de que el código OTP tenga exactamente 6 dígitos
-      toast.error("Ingresa el código OTP de 6 dígitos");
+    if (otpCode.length !== 6) {
+      toast.error("Ingresa el código OTP de 6 caracteres");
       return;
     }
-    // Validación adicional para asegurarse de que el código OTP solo contenga dígitos numéricos
-    if (!/^\d{6}$/.test(otpCode)) {
-      toast.error("El código OTP solo puede contener dígitos numéricos");
+    // Acepta letras y números (códigos hexadecimales como db96fe)
+    if (!/^[a-f0-9]{6}$/.test(otpCode)) {
+      toast.error("El código OTP solo puede contener letras (a-f) y números");
       return;
     }
 
-    // Si las validaciones pasan, se procede a enviar el código OTP al backend para su verificación
     setIsSubmitting(true);
 
     try {
       const response = await fetch(API_VERIFY, {
-        method: "POST", // Método POST para enviar el código OTP al backend
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // Incluye las cookies en la solicitud para que el backend pueda acceder al token de registro almacenado en la cookie
+        credentials: "include",
         body: JSON.stringify({ verificationCodeRequest: otpCode }),
       });
 
-      // Se intenta parsear la respuesta del backend como JSON 
       const payload = await response.json().catch(() => ({}));
+      
       if (!response.ok) {
         throw new Error(payload?.message || "No se pudo verificar el código");
       }
 
-      // Si la verificación es exitosa, se elimina el token de registro de la cookie y se muestra un mensaje de éxito
       sessionStorage.removeItem("pendingRegistration");
       toast.success(payload?.message || "Cuenta verificada correctamente");
       navigate("/");
     } catch (error) {
       toast.error(error.message || "Error verificando código OTP");
     } finally {
-      setIsSubmitting(false); // Se restablece el estado de envío del formulario independientemente del resultado de la verificación
+      setIsSubmitting(false);
     }
   };
 
-  // Función para manejar el reenvío del código OTP al usuario
   const handleResend = async () => {
     const rawPending = sessionStorage.getItem("pendingRegistration");
     if (!rawPending) {
@@ -67,7 +62,7 @@ function OtpVerification() {
       return;
     }
 
-    setIsResending(true); // Se establece el estado de reenvío para deshabilitar el botón mientras se procesa la solicitud de reenvío
+    setIsResending(true);
 
     try {
       const payload = JSON.parse(rawPending);
@@ -89,11 +84,10 @@ function OtpVerification() {
     } catch (error) {
       toast.error(error.message || "No se pudo reenviar el código");
     } finally {
-      setIsResending(false); // Se restablece el estado de reenvío independientemente del resultado de la solicitud
+      setIsResending(false);
     }
   };
 
-  // Renderizado del componente de verificación OTP con estilos personalizados y funcionalidad para ingresar el código OTP y reenviar el código si es necesario
   return (
     <section className="relative min-h-screen overflow-hidden bg-[#1F1F1F] text-white">
       <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(circle at 20% 18%, rgba(130,39,39,0.35), transparent 38%)" }} />
@@ -143,7 +137,7 @@ function OtpVerification() {
               </form>
 
               <div className="mt-6 flex items-center justify-between text-sm text-white/40">
-                <Link to="/register" className={`${buttonVariants({ variant: "link", size: "sm" })} h-auto p-0 text-white hover:text-[#822727]`}>
+                <Link to="/register" className={buttonVariants({ variant: "link", size: "sm" }) + " h-auto p-0 text-white hover:text-[#822727]"}>
                   Volver a registro
                 </Link>
                 <button
